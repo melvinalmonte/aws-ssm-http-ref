@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 
@@ -42,4 +43,5 @@ func TestPutParameter(t *testing.T) {
 	}
 
 	t.Log("Parameter version:", resp.Version)
+	assert.Equal(t, int64(1), resp.Version, "Version should be 1")
 }
