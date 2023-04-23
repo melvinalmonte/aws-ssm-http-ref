@@ -1,8 +1,8 @@
 package api
 
 import (
+	"go.uber.org/zap"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -12,30 +12,35 @@ type API struct {
 }
 
 func (api *API) RetrieveTodo() ([]byte, error) {
+	zap.S().Info("Retrieving todo")
 	req, err := http.NewRequest("GET", api.BaseURL, nil)
 	if err != nil {
-		log.Default().Fatal("Error creating request")
+		zap.S().Error("Error creating request")
 		return nil, err
 	}
+	zap.S().Info("Executing request")
 	resp, err := api.Client.Do(req)
 	if err != nil {
-		//log.Default().Fatal("Error sending request")
+		zap.S().Error("Error executing request")
 		return nil, err
 	}
 
 	defer func(Body io.ReadCloser) {
+		zap.S().Info("Closing body")
 		err := Body.Close()
 		if err != nil {
-			log.Default().Fatal("Error closing body")
+			zap.S().Error("Error closing body")
 			return
 		}
 	}(resp.Body)
 
+	zap.S().Info("Reading body")
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Default().Fatal("Error reading body")
+		zap.S().Error("Error reading body")
 		return nil, err
 	}
 
+	zap.S().Info("Returning request body")
 	return body, nil
 }
