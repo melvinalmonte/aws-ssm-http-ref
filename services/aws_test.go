@@ -3,6 +3,9 @@ package services
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -44,4 +47,34 @@ func TestPutParameter(t *testing.T) {
 
 	t.Log("Parameter version:", resp.Version)
 	assert.Equal(t, int64(1), resp.Version, "Version should be 1")
+}
+
+// Define a mock struct to use in unit tests
+type mockSTSClient struct {
+	stsiface.STSAPI
+}
+
+func (m *mockSTSClient) GetCallerIdentityRequest(*sts.GetCallerIdentityInput) (*request.Request, *sts.GetCallerIdentityOutput) {
+	resp := sts.GetCallerIdentityOutput{
+		Account: aws.String("test-account"),
+		Arn:     aws.String("test-ARN"),
+		UserId:  aws.String("test-user-ID"),
+	}
+
+	return nil, &resp
+}
+
+func TestGetIdentity(t *testing.T) {
+	thisTime := time.Now()
+	nowString := thisTime.Format("2006-01-02 15:04:05 Monday")
+	t.Log("Starting unit test at " + nowString)
+
+	// mock resources
+
+	mockSvc := &mockSTSClient{}
+
+	_, output := GetIdentity(mockSvc)
+
+	assert.Equal(t, "test-account", *output.Account, "Account should be test-account")
+	assert.Equal(t, "test-ARN", *output.Arn, "ARN should be test-ARN")
 }
